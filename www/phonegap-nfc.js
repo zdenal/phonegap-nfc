@@ -428,8 +428,23 @@ var nfc = {
     removeNdefListener: function (callback, win, fail) {
         document.removeEventListener("ndef", callback, false);
         cordova.exec(win, fail, "NfcPlugin", "removeNdef", []);
-    }
+    },
 
+    // APDU
+    connect: function(callback, win, fail) {
+        cordova.exec(win, fail, "NfcPlugin", "connect", []);
+    },
+
+    // APDU
+    close: function(callback, win, fail) {
+        cordova.exec(win, fail, "NfcPlugin", "close", []);
+    },
+
+    // APDU
+    transceive: function(data, callback, win, fail) {
+        cordova.exec(win, fail, "NfcPlugin", "transceive", [data]);
+    }
+    
 };
 
 var util = {

@@ -5,6 +5,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.xml.bind.DatatypeConverter;
 
 // using wildcard imports so we can support Cordova 3.x and Cordova 2.9
 import org.apache.cordova.*; // Cordova 3.x
@@ -33,6 +34,11 @@ import android.os.Parcelable;
 import android.util.Log;
 
 public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCompleteCallback {
+
+    private static final String CONNECT = "connect";
+    private static final String CLOSE = "close";
+    private static final String TRANSCEIVE = "transceive";
+
     private static final String REGISTER_MIME_TYPE = "registerMimeType";
     private static final String REMOVE_MIME_TYPE = "removeMimeType";
     private static final String REGISTER_NDEF = "registerNdef";
@@ -69,6 +75,11 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 
     private CallbackContext shareTagCallback;
     private CallbackContext handoverCallback;
+    
+    /**
+     * APDU
+     */
+    private IsoDep isoDep = null;
 
     @Override
     public boolean execute(String action, JSONArray data, CallbackContext callbackContext) throws JSONException {
@@ -124,6 +135,21 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
         } else if (action.equalsIgnoreCase(INIT)) {
             init(callbackContext);
 
+        } else if (action.equalsIgnoreCase(CONNECT)) {
+	    // APDU
+	    connect(callbackContext);
+        }
+
+        } else if (action.equalsIgnoreCase(CLOSE)) {
+	    // APDU
+	    close(callbackContext);
+        }
+
+        } else if (action.equalsIgnoreCase(TRANSCEIVE)) {
+	    // APDU
+	    transceive(data, callbackContext);
+        }
+        
         } else {
             // invalid action
             return false;
@@ -131,6 +157,75 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 
         return true;
     }
+    
+    /**
+     * APDU
+     */
+    private void connect(CallbackContext callbackContext) throws JSONException {
+      try {
+        if (getIntent() == null) {  // TODO remove this and handle LostTag
+            callbackContext.error("Failed to connect, received null intent");
+        }
+        
+        if (isoDep != null ) {
+            callbackContext.error("Already connected");
+        }
+
+        isoDep = IsoDep.get(intent.getParcelableExtra(NfcAdapter.EXTRA_TAG));
+	isoDep.connect();
+        
+	callbackContext.success();
+
+      } catch (Exception e) {
+	callbackContext.error(e.getMessage());
+      }
+    }
+    
+    /**
+     * APDU
+     */
+    private void close(JSONArray data, CallbackContext callbackContext) throws JSONException {
+      try {
+        if (getIntent() == null) {  // TODO remove this and handle LostTag
+            callbackContext.error("Failed to close, received null intent");
+        }
+
+        if (isoDep != null ) {
+            callbackContext.error("Not connected");
+        }
+        
+	isoDep.close();
+	isoDep = null;
+        
+	callbackContext.success();
+
+      } catch (Exception e) {
+	callbackContext.error(e.getMessage());
+      }
+    }
+ 
+    /**
+     * APDU
+     */
+    private void transceive(JSONArray data, CallbackContext callbackContext) throws JSONException {
+      try {
+        if (getIntent() == null) {  // TODO remove this and handle LostTag
+            callbackContext.error("Failed to transceive, received null intent");
+        }
+        
+        if (isoDep != null ) {
+            callbackContext.error("Not connected");
+        }
+
+        byte[] commandAPDU = DatatypeConverter.parseHexBinary(data.getString(0));
+	byte[] responseAPDU = isoDep.transceive(commandAPDU);
+        
+	callbackContext.success(DatatypeConverter.printHexBinary(responseAPDU));
+
+      } catch (Exception e) {
+	callbackContext.error(e.getMessage());
+      }
+    }   
 
     private String getNfcStatus() {
         NfcAdapter nfcAdapter = NfcAdapter.getDefaultAdapter(getActivity());
