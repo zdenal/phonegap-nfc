@@ -137,18 +137,15 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 
         } else if (action.equalsIgnoreCase(CONNECT)) {
 	    // APDU
-	    connect(callbackContext);
-        }
+	    connect(callbackContext);     
 
         } else if (action.equalsIgnoreCase(CLOSE)) {
 	    // APDU
 	    close(callbackContext);
-        }
 
         } else if (action.equalsIgnoreCase(TRANSCEIVE)) {
 	    // APDU
 	    transceive(data, callbackContext);
-        }
         
         } else {
             // invalid action
