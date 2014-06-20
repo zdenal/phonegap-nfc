@@ -431,17 +431,17 @@ var nfc = {
     },
 
     // APDU
-    connect: function(callback, win, fail) {
+    connect: function (win, fail) {	    
         cordova.exec(win, fail, "NfcPlugin", "connect", []);
     },
 
     // APDU
-    close: function(callback, win, fail) {
+    close: function (win, fail) {
         cordova.exec(win, fail, "NfcPlugin", "close", []);
     },
 
     // APDU
-    transceive: function(data, callback, win, fail) {
+    transceive: function (data, win, fail) {
         cordova.exec(win, fail, "NfcPlugin", "transceive", [data]);
     }
     
