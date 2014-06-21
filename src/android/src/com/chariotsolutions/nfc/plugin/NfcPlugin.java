@@ -19,11 +19,14 @@ import android.nfc.tech.NdefFormatable;
 import android.os.Parcelable;
 import android.util.Log;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import javax.xml.bind.DatatypeConverter;
+import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -84,8 +87,18 @@ public class NfcPlugin
     public boolean execute(String action, JSONArray data, CallbackContext callbackContext)
             throws JSONException
     {
+        Log.wtf("TEST", action);
+        Log.e("TEST", action);
+        Log.i("TEST", action);
 
-        Log.d(TAG, "execute command " + action);
+        if (data.length() == 0)
+        {
+            Log.d(TAG, "execute command " + action);
+        }
+        else
+        {
+            Log.d(TAG, "execute command " + action + " with " + data.toString());
+        }
 
         if (!getNfcStatus().equals(STATUS_NFC_OK))
         {
@@ -198,40 +211,42 @@ public class NfcPlugin
     private void connect(CallbackContext callbackContext)
             throws JSONException
     {
-	Log.d(TAG, "## connect ");
+        Log.d(TAG, "## connect ");
         try
         {
-/*
-            if (savedIntent == null)
+            /*
+             if (savedIntent == null)
+             {
+             callbackContext.error("No intent");
+             }
+
+             if (isoDep != null || isoDep.isConnected() )
+             {
+             callbackContext.error("Already connected");
+             }
+             */
+            if (tag == null)
             {
-                callbackContext.error("No intent");
+                //tag = (Tag) savedIntent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+                tag = (Tag) getIntent().getParcelableExtra(NfcAdapter.EXTRA_TAG);
             }
 
-            if (isoDep != null || isoDep.isConnected() )
-            {
-                callbackContext.error("Already connected");
-            }
-*/           
-	    if(tag == null) {
-	      //tag = (Tag) savedIntent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-	      tag = (Tag) getIntent().getParcelableExtra(NfcAdapter.EXTRA_TAG);
-	    }
-            
             isoDep = IsoDep.get(tag);
-            if(isoDep==null) {
-	      callbackContext.error("No Mifare card?!");
+            if (isoDep == null)
+            {
+                callbackContext.error("No Mifare card?!");
             }
-            
+
             isoDep.connect();
             isoDep.setTimeout(5000);
 
             callbackContext.success();
 
         }
-        catch (Exception e)
+        catch (Throwable e)
         {
-	    Log.d(TAG, "## EXCEPTION " + e);
-            callbackContext.error("Ups "+e.getMessage());
+            Log.e(TAG, "## EXCEPTION ", e);
+            callbackContext.error("Ups " + e.getMessage());
         }
     }
 
@@ -241,7 +256,7 @@ public class NfcPlugin
     private void close(CallbackContext callbackContext)
             throws JSONException
     {
-	Log.d(TAG, "## close ");
+        Log.w(TAG, "## close ");
         try
         {
             if (isoDep == null || !isoDep.isConnected())
@@ -255,10 +270,10 @@ public class NfcPlugin
             callbackContext.success();
 
         }
-        catch (Exception e)
+        catch (Throwable e)
         {
-	    Log.d(TAG, "## EXCEPTION " + e);
-            callbackContext.error("Ups "+e.getMessage());
+            Log.e(TAG, "## EXCEPTION ", e);
+            callbackContext.error("Ups " + e.getMessage());
         }
     }
 
@@ -268,7 +283,7 @@ public class NfcPlugin
     private void transceive(JSONArray data, CallbackContext callbackContext)
             throws JSONException
     {
-	Log.d(TAG, "## transceive <" + hex2Byte(data.getString(0)));
+        Log.w(TAG, "## transceive <" + data.getString(0));
         try
         {
             if (isoDep == null || !isoDep.isConnected())
@@ -279,34 +294,39 @@ public class NfcPlugin
             byte[] commandAPDU = hex2Byte(data.getString(0));
             byte[] responseAPDU = isoDep.transceive(commandAPDU);
 
-        Log.d(TAG, "## transceive >" + byte2Hex(responseAPDU) );
-            
+            Log.w(TAG, "## transceive >" + byte2Hex(responseAPDU));
+
             callbackContext.success(byte2Hex(responseAPDU));
 
         }
-        catch (Exception e)
+        catch (Throwable e)
         {
-	    Log.d(TAG, "## EXCEPTION " + e);
-            callbackContext.error("Ups "+e.getMessage());
+            Log.e(TAG, "## EXCEPTION ", e);
+            callbackContext.error("Ups " + e.getMessage());
         }
     }
-    
-    private byte[] hex2Byte(final String hex) {
-      return new BigInteger(hex,16).toByteArray();
+
+    private byte[] hex2Byte(final String hex)
+    {
+        return new BigInteger(hex, 16).toByteArray();
     }
-    
-    private String hex2Byte(final byte[] b) {
-    
-       StringBuffer sb = new StringBuffer();
-	for (int i = 0; i < b.length; i++){	
-	  sb.append(Integer.toString((b[i] & 0xff) + 0x100, 16).substring(1));
-	}
-	return sb.toString();
-    
+
+    private String byte2Hex(final byte[] b)
+    {
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < b.length; i++)
+        {
+            sb.append(Integer.toString((b[i] & 0xff) + 0x100, 16).substring(1));
+        }
+        return sb.toString();
+
     }
 
     private String getNfcStatus()
     {
+        Log.e(TAG, "----- getNfcStatus -----");
+
         NfcAdapter nfcAdapter = NfcAdapter.getDefaultAdapter(getActivity());
         if (nfcAdapter == null)
         {
@@ -417,12 +437,12 @@ public class NfcPlugin
     private void eraseTag(CallbackContext callbackContext)
             throws JSONException
     {
-        Tag tag = savedIntent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+        Tag _tag = savedIntent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
         NdefRecord[] records =
         {
             new NdefRecord(NdefRecord.TNF_EMPTY, new byte[0], new byte[0], new byte[0])
         };
-        writeNdefMessage(new NdefMessage(records), tag, callbackContext);
+        writeNdefMessage(new NdefMessage(records), _tag, callbackContext);
     }
 
     private void writeTag(JSONArray data, CallbackContext callbackContext)
@@ -433,9 +453,9 @@ public class NfcPlugin
             callbackContext.error("Failed to write tag, received null intent");
         }
 
-        Tag tag = savedIntent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+        Tag _tag = savedIntent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
         NdefRecord[] records = Util.jsonToNdefRecords(data.getString(0));
-        writeNdefMessage(new NdefMessage(records), tag, callbackContext);
+        writeNdefMessage(new NdefMessage(records), _tag, callbackContext);
     }
 
     private void writeNdefMessage(final NdefMessage message, final Tag tag, final CallbackContext callbackContext)
@@ -611,6 +631,7 @@ public class NfcPlugin
 
         getActivity().runOnUiThread(new Runnable()
         {
+            @Override
             public void run()
             {
                 NfcAdapter nfcAdapter = NfcAdapter.getDefaultAdapter(getActivity());
@@ -642,6 +663,7 @@ public class NfcPlugin
         Log.d(TAG, "stopNfc");
         getActivity().runOnUiThread(new Runnable()
         {
+            @Override
             public void run()
             {
 
@@ -667,6 +689,7 @@ public class NfcPlugin
     {
         getActivity().runOnUiThread(new Runnable()
         {
+            @Override
             public void run()
             {
 
@@ -706,6 +729,7 @@ public class NfcPlugin
     {
         getActivity().runOnUiThread(new Runnable()
         {
+            @Override
             public void run()
             {
 
@@ -737,6 +761,7 @@ public class NfcPlugin
     {
         getActivity().runOnUiThread(new Runnable()
         {
+            @Override
             public void run()
             {
 
@@ -755,6 +780,7 @@ public class NfcPlugin
     {
         getActivity().runOnUiThread(new Runnable()
         {
+            @Override
             public void run()
             {
 
@@ -877,9 +903,9 @@ public class NfcPlugin
     {
 
         JSONObject jsonObject = buildNdefJSON(ndef, messages);
-        String tag = jsonObject.toString();
+        String tagAsString = jsonObject.toString();
 
-        String command = MessageFormat.format(javaScriptEventTemplate, type, tag);
+        String command = MessageFormat.format(javaScriptEventTemplate, type, tagAsString);
         Log.v(TAG, command);
         this.webView.sendJavascript(command);
 
