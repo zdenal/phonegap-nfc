@@ -562,6 +562,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 
         String command = MessageFormat.format(javaScriptEventTemplate, type, tag);
         Log.v(TAG, command);
+        this.webView.sendJavascript("alert('what is fucking wrong');");
         this.webView.sendJavascript(command);
 
     }
@@ -577,6 +578,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 
         String command = MessageFormat.format(javaScriptEventTemplate, TAG_DEFAULT, Util.tagToJSON(tag));
         Log.v(TAG, command);
+        this.webView.sendJavascript("alert('what is fucking wrong');");
         this.webView.sendJavascript(command);
     }
 
