@@ -208,7 +208,7 @@ public class NfcPlugin
     /**
      * APDU
      */
-    private void connect(CallbackContext callbackContext)
+    private void connect(final CallbackContext callbackContext)
             throws JSONException
     {
         Log.d(TAG, "## connect ");
@@ -225,20 +225,36 @@ public class NfcPlugin
              callbackContext.error("Already connected");
              }
              */
-            if (tag == null)
-            {
-                //tag = (Tag) savedIntent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-                tag = (Tag) getIntent().getParcelableExtra(NfcAdapter.EXTRA_TAG);
-            }
 
-            isoDep = IsoDep.get(tag);
-            if (isoDep == null)
+            this.cordova.getThreadPool().execute(new Runnable()
             {
-                callbackContext.error("No Mifare card?!");
-            }
+                @Override
+                public void run()
+                {
 
-            isoDep.connect();
-            isoDep.setTimeout(5000);
+                    try
+                    {
+                        if (tag == null)
+                        {
+                            //tag = (Tag) savedIntent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+                            tag = (Tag) getIntent().getParcelableExtra(NfcAdapter.EXTRA_TAG);
+                        }
+
+                        isoDep = IsoDep.get(tag);
+                        if (isoDep == null)
+                        {
+                            callbackContext.error("No Mifare card?!");
+                        }
+
+                        isoDep.connect();
+                        isoDep.setTimeout(5000);
+                    }
+                    catch (IOException ex)
+                    {
+                        Log.e(TAG, "Can't connect to IsoDep", ex);
+                    }
+                }
+            });
 
             callbackContext.success();
 
