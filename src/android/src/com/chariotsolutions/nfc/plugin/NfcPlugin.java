@@ -885,11 +885,13 @@ public class NfcPlugin
                 if (action.equals(NfcAdapter.ACTION_NDEF_DISCOVERED))
                 {
                     Ndef ndef = Ndef.get(tag);
+                    webView.sendJavascript('alert("ndef discovered");');
                     fireNdefEvent(NDEF_MIME, ndef, messages);
 
                 }
                 else if (action.equals(NfcAdapter.ACTION_TECH_DISCOVERED))
                 {
+                    webView.sendJavascript('alert("tech discovered");');
                     for (String tagTech : tag.getTechList())
                     {
                         Log.d(TAG, tagTech);
@@ -907,6 +909,7 @@ public class NfcPlugin
 
                 if (action.equals(NfcAdapter.ACTION_TAG_DISCOVERED))
                 {
+                        webView.sendJavascript('alert("tag discovered");');
                     fireTagEvent(tag);
                 }
 
