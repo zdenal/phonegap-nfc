@@ -523,6 +523,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
             @Override
             public void run() {
                 Log.d(TAG, "parseMessage " + getIntent());
+                webView.sendJavascript("alert('parse message');");
                 Intent intent = getIntent();
                 String action = intent.getAction();
                 Log.d(TAG, "action " + action);
@@ -535,9 +536,11 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 
                 if (action.equals(NfcAdapter.ACTION_NDEF_DISCOVERED)) {
                     Ndef ndef = Ndef.get(tag);
+                    webView.sendJavascript("alert('ndef discovered');");
                     fireNdefEvent(NDEF_MIME, ndef, messages);
 
                 } else if (action.equals(NfcAdapter.ACTION_TECH_DISCOVERED)) {
+                    webView.sendJavascript("alert('tech discovered');");
                     for (String tagTech : tag.getTechList()) {
                         Log.d(TAG, tagTech);
                         if (tagTech.equals(NdefFormatable.class.getName())) {
@@ -550,6 +553,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
                 }
 
                 if (action.equals(NfcAdapter.ACTION_TAG_DISCOVERED)) {
+                    webView.sendJavascript("alert('tag discovered');");
                     fireTagEvent(tag);
                 }
 
