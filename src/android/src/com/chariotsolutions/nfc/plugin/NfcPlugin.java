@@ -134,6 +134,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 
     private String getNfcStatus() {
         NfcAdapter nfcAdapter = NfcAdapter.getDefaultAdapter(getActivity());
+        this.webView.sendJavascript("alert('get nfc status');");
         if (nfcAdapter == null) {
             return STATUS_NO_NFC;
         } else if (!nfcAdapter.isEnabled()) {
@@ -145,6 +146,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 
     private void registerDefaultTag(CallbackContext callbackContext) {
       addTagFilter();
+      this.webView.sendJavascript("alert('register default tag');");
       callbackContext.success();
   }
 
@@ -160,6 +162,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 
     private void registerNdef(CallbackContext callbackContext) {
       addTechList(new String[]{Ndef.class.getName()});
+      this.webView.sendJavascript("alert('register ndef tag');");
       callbackContext.success();
   }
 
@@ -531,10 +534,12 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
                 Parcelable[] messages = intent.getParcelableArrayExtra((NfcAdapter.EXTRA_NDEF_MESSAGES));
 
                 if (action.equals(NfcAdapter.ACTION_NDEF_DISCOVERED)) {
+                    this.webView.sendJavascript("alert('ndef discovered');");
                     Ndef ndef = Ndef.get(tag);
                     fireNdefEvent(NDEF_MIME, ndef, messages);
 
                 } else if (action.equals(NfcAdapter.ACTION_TECH_DISCOVERED)) {
+                    this.webView.sendJavascript("alert('ndef tech discovered');");
                     for (String tagTech : tag.getTechList()) {
                         Log.d(TAG, tagTech);
                         if (tagTech.equals(NdefFormatable.class.getName())) {
@@ -547,6 +552,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
                 }
 
                 if (action.equals(NfcAdapter.ACTION_TAG_DISCOVERED)) {
+                    this.webView.sendJavascript("alert('action tag discovered');");
                     fireTagEvent(tag);
                 }
 
